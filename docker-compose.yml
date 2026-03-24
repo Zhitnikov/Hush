@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongo
+    container_name: secure-messenger-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./server
+    container_name: secure-messenger-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/securemessenger
+      - JWT_SECRET=supersecretkey123
+    volumes:
+      - upload-data:/app/uploads
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./client
+    container_name: secure-messenger-frontend
+    ports:
+      - "3333:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo-data:
+  upload-data:

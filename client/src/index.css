@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #2563eb;
+  --bg-main: #fafafa;
+  --sidebar: #ffffff;
+  --sidebar-active: #eff6ff;
+  --bubble-me: #dcfce7;
+  --bubble-other: #ffffff;
+  --text-main: #0f172a;
+  --text-dim: #64748b;
+  --border: #e2e8f0;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .light-shadow {
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+
+  .premium-shadow {
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  }
+
+  @keyframes reaction-pop {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.4);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  .reaction-animate {
+    animation: reaction-pop 0.3s ease-out;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.15s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(2px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
