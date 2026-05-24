@@ -6,6 +6,12 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
 
   backend:
     build: ./server
@@ -13,21 +19,29 @@ services:
     ports:
       - "5000:5000"
     environment:
+      - NODE_ENV=production
       - PORT=5000
       - MONGO_URI=mongodb://mongo:27017/securemessenger
-      - JWT_SECRET=supersecretkey123
+      - JWT_SECRET=supersecretkey123-change-in-production-min-32-chars
+      - CORS_ORIGINS=http://localhost:3333,http://127.0.0.1:3333
     volumes:
       - upload-data:/app/uploads
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        VITE_API_ORIGIN: ""
     container_name: secure-messenger-frontend
     ports:
       - "3333:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
 volumes:
   mongo-data:

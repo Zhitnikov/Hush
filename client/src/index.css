@@ -3,84 +3,314 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2563eb;
-  --bg-main: #fafafa;
-  --sidebar: #ffffff;
-  --sidebar-active: #eff6ff;
-  --bubble-me: #dcfce7;
-  --bubble-other: #ffffff;
-  --text-main: #0f172a;
-  --text-dim: #64748b;
-  --border: #e2e8f0;
+  --app-height: 100dvh;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --bg-app: #dfe6eb;
+  --bg-sidebar: #ffffff;
+  --bg-chat: #e4ddd4;
+  --bg-chat-pattern: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8c0b8' fill-opacity='0.22'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --bg-input: #f4f4f5;
+  --bg-bubble-me: #eeffde;
+  --bg-bubble-other: #ffffff;
+  --bg-hover: #f4f4f5;
+  --bg-active-chat: #3390ec;
+  --accent: #3390ec;
+  --accent-hover: #2b7fd4;
+  --accent-muted: #e8f4fc;
+  --text-primary: #000000;
+  --text-secondary: #707579;
+  --text-on-accent: #ffffff;
+  --border: #e6e6e6;
+  --border-light: #f0f0f0;
+  --shadow-list: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --header-h: 56px;
+  --sidebar-w: 340px;
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  :root {
+    --sidebar-w: min(300px, 38vw);
+  }
 }
 
 @layer base {
+  html {
+    height: 100%;
+    height: 100dvh;
+  }
+
   body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
+    height: 100%;
+    height: 100dvh;
+    margin: 0;
+  }
+
+  #root {
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .hush-app-shell {
+    height: 100%;
+    height: var(--app-height);
+    max-height: 100dvh;
+    min-height: 0;
+  }
+
+  .hush-chat-panel {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  button, input, textarea {
+    font: inherit;
+  }
+
+  a {
+    color: var(--accent);
   }
 }
 
 @layer components {
-  .light-shadow {
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  .hush-sidebar {
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    min-width: 0;
+    overflow: hidden;
   }
 
-  .premium-shadow {
-    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  .hush-sidebar-header {
+    height: var(--header-h);
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-light);
   }
 
-  @keyframes reaction-pop {
-    0% {
-      transform: scale(1);
-    }
-
-    50% {
-      transform: scale(1.4);
-    }
-
-    100% {
-      transform: scale(1);
-    }
+  .hush-search {
+    background: var(--bg-input);
+    border: none;
+    border-radius: 22px;
+    padding: 8px 12px 8px 36px;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    transition: box-shadow 0.15s ease;
   }
 
-  .reaction-animate {
-    animation: reaction-pop 0.3s ease-out;
+  .hush-search:focus {
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--accent);
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
+  .hush-chat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    margin: 0 6px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.12s ease;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+  .hush-chat-row:hover {
+    background: var(--bg-hover);
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+  .hush-chat-row-active {
+    background: var(--bg-active-chat);
+    color: var(--text-on-accent);
+  }
+
+  .hush-chat-row-active .hush-chat-sub,
+  .hush-chat-row-active .hush-chat-time {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .hush-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 17px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .hush-unread {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
     border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+  .hush-chat-panel {
+    background-color: var(--bg-chat);
+    background-image: var(--bg-chat-pattern);
+    background-size: 60px 60px;
+  }
+
+  .hush-chat-header {
+    height: var(--header-h);
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .msg-bubble-me {
+    background: var(--bg-bubble-me);
+    border-radius: 12px 12px 4px 12px;
+    box-shadow: var(--shadow-list);
+  }
+
+  .msg-bubble-other {
+    background: var(--bg-bubble-other);
+    border-radius: 12px 12px 12px 4px;
+    box-shadow: var(--shadow-list);
+  }
+
+  .hush-compose {
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    padding: 8px 12px calc(10px + var(--safe-bottom));
+    flex-shrink: 0;
+  }
+
+  .hush-chat-panel {
+    min-height: 0;
+  }
+
+  .safe-top {
+    padding-top: max(0.5rem, var(--safe-top));
+  }
+
+  .hush-compose-field {
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    min-height: 44px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .hush-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .hush-btn-icon:hover {
+    background: var(--bg-hover);
+    color: var(--accent);
+  }
+
+  .hush-btn-send {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hush-btn-send:hover {
+    background: var(--accent-hover);
+  }
+
+  .hush-tab {
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 14px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .hush-tab-active {
+    background: var(--accent-muted);
+    color: var(--accent);
+  }
+
+  .hush-skeleton {
+    background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
+    background-size: 200% 100%;
+    animation: hush-shimmer 1.2s ease-in-out infinite;
+    border-radius: 6px;
+  }
+
+  @keyframes hush-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  .markdown-body code {
+    @apply bg-black/5 px-1 py-0.5 rounded text-[13px] font-mono;
+  }
+
+  .markdown-body pre {
+    @apply bg-[#1e1e1e] text-[#d4d4d4] p-3 rounded-lg text-[13px] overflow-x-auto my-2;
   }
 
   .fade-in {
-    animation: fadeIn 0.15s ease-out forwards;
+    animation: fadeIn 0.12s ease-out forwards;
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(2px);
-    }
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+  }
+
+  .reaction-animate {
+    animation: reaction-pop 0.25s ease-out;
+  }
+
+  @keyframes reaction-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
   }
 }

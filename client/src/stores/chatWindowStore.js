@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
+import { loadAppearance } from '../utils/appearance';
 
 function initialData() {
     return {
@@ -52,17 +53,17 @@ export const useChatWindowStore = create((set, get) => ({
     patch: (partial) => set((s) => ({ ...s, ...partial })),
 
     resetForChatSwitch: (chat, currentUser) => {
-        const wall = localStorage.getItem(`wallpaper_${currentUser?.id}`) || '#f4f7f9';
+        const app = loadAppearance();
         set({
             ...initialData(),
             messages: [],
             hasMoreOlder: true,
             loadingInitial: true,
             userStatus: { status: 'offline', lastSeen: chat.lastSeen },
-            wallpaper: wall,
+            wallpaper: app.chatBackground,
+            bubbleColor: app.bubbleMe,
             isMuted: currentUser?.mutedChats?.includes(chat.id),
             alias: currentUser?.aliases?.[chat.id] || '',
-            bubbleColor: currentUser?.chatPreferences?.[chat.id]?.bubbleColor || (String(chat.id) === String(currentUser?.id) ? '#eeffde' : '#ffffff'),
         });
     },
 
