@@ -1,145 +1,98 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { authLimiter } = require('../middleware/rateLimit');
+const auth = require('../middleware/auth');
+const authService = require('../services/authService');
 
-router.post('/register', async (req, res) => {
-    const { username, password, publicKey } = req.body;
-    try {
-        let user = await User.findOne({ username });
-        if (user) return res.status(400).json({ msg: 'User already exists' });
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        user = new User({
-            username,
-            password: hashedPassword,
-            publicKey
-        });
-
-        await user.save();
-
-        const payload = { userId: user.id, username: user.username };
-        const token = jwt.sign(payload, process.env.JWT_SECRET || 'secretkey123', { expiresIn: '7d' });
-
-        res.json({ token, user: { id: user.id, username: user.username, publicKey: user.publicKey } });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
+router.post('/register', authLimiter, async (req, res, next) => {
+  try {
+    res.json(await authService.registerUser(req.body));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/update-key', require('../middleware/auth'), async (req, res) => {
-    try {
-        const { publicKey } = req.body;
-        await User.findByIdAndUpdate(req.user.userId, { publicKey });
-        res.json({ msg: 'Public key updated' });
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.post('/login', authLimiter, async (req, res, next) => {
+  try {
+    res.json(await authService.loginUser(req.body));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const user = await User.findOne({ username }).select('+password');
-        if (!user) return res.status(400).json({ msg: 'Invalid Credentials' });
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Invalid Credentials' });
-
-        const payload = { userId: user.id, username: user.username };
-        const token = jwt.sign(payload, process.env.JWT_SECRET || 'secretkey123', { expiresIn: '7d' });
-
-        res.json({ token, user: { id: user.id, username: user.username, publicKey: user.publicKey } });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
+router.post('/refresh', authLimiter, async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(400).json({ msg: 'Refresh token required' });
+    res.json(await authService.refreshSession(refreshToken));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/me', require('../middleware/auth'), async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).select('-password');
-        res.json(user);
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.post('/logout', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.logoutUser(req.user.userId, req.body.refreshToken));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.put('/profile', require('../middleware/auth'), async (req, res) => {
-    try {
-        const { name, username, bio, profilePic } = req.body;
-        const update = {};
-        if (name !== undefined) update.name = name;
-        if (username !== undefined) update.username = username;
-        if (bio !== undefined) update.bio = bio;
-        if (profilePic !== undefined) update.profilePic = profilePic;
-
-        const user = await User.findByIdAndUpdate(req.user.userId, { $set: update }, { new: true }).select('-password');
-        res.json(user);
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.post('/update-key', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.updatePublicKey(req.user.userId, req.body.publicKey));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.put('/password', require('../middleware/auth'), async (req, res) => {
-    try {
-        const { currentPassword, newPassword } = req.body;
-        const user = await User.findById(req.user.userId).select('+password');
-
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Current password incorrect' });
-
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(newPassword, salt);
-        await user.save();
-
-        res.json({ msg: 'Password updated successfully' });
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.get('/me', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.getProfile(req.user.userId));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/block', require('../middleware/auth'), async (req, res) => {
-    try {
-        const { targetId } = req.body;
-        const user = await User.findById(req.user.userId);
-
-        const index = user.blockedUsers.indexOf(targetId);
-        if (index > -1) {
-            user.blockedUsers.splice(index, 1);
-            await user.save();
-            res.json({ msg: 'User unblocked', blockedUsers: user.blockedUsers });
-        } else {
-            user.blockedUsers.push(targetId);
-            await user.save();
-            res.json({ msg: 'User blocked', blockedUsers: user.blockedUsers });
-        }
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.put('/profile', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.updateProfile(req.user.userId, req.body));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/blacklist', require('../middleware/auth'), async (req, res) => {
-    try {
-        const user = await User.findById(req.user.userId).populate('blockedUsers', 'username profilePic');
-        res.json(user.blockedUsers);
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.put('/password', auth, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    res.json(await authService.changePassword(req.user.userId, currentPassword, newPassword));
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/user/:id', require('../middleware/auth'), async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id).select('username profilePic bio name publicKey lastSeen');
-        if (!user) return res.status(404).json({ msg: 'User not found' });
-        res.json(user);
-    } catch (err) {
-        res.status(500).send('Server Error');
-    }
+router.post('/block', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.toggleBlock(req.user.userId, req.body.targetId));
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/blacklist', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.getBlacklist(req.user.userId));
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/user/:id', auth, async (req, res, next) => {
+  try {
+    res.json(await authService.getUserById(req.params.id));
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

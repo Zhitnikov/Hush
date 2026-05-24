@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hush — localtunnel</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 32rem; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.55; color: #111; }
+    .box { background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 12px; margin: 1rem 0; }
+    .ok { background: #ecfdf5; border-color: #10b981; }
+    code { background: #f3f4f6; padding: 0.12rem 0.35rem; border-radius: 4px; word-break: break-all; font-size: 0.9em; }
+    a.btn { display: inline-block; margin: 0.35rem 0.5rem 0.35rem 0; padding: 0.6rem 1rem; background: #3390ec; color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; }
+    a.btn.secondary { background: #4b5563; }
+    ul { padding-left: 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>localtunnel (loca.lt)</h1>
+
+  <div class="box">
+    <strong>Не вводите свой IP (например 178.66.130.5).</strong>
+    <p>На странице loca.lt показан <strong>IP сервера туннеля</strong> (часто 45.x.x.x и т.п.) — в поле нужно ввести <strong>именно его</strong>, один в один.</p>
+    <p>Если ввести свой домашний IP — форма не пустит, появится ошибка в Chrome.</p>
+  </div>
+
+  <h2>Удобные варианты</h2>
+  <ul>
+    <li><strong>Телефон в той же Wi‑Fi:</strong> <code>https://&lt;IP-ПК&gt;:3443</code> (без туннеля).</li>
+    <li><strong>ПК, без loca.lt:</strong> <a class="btn" href="/">http://localhost:3333</a></li>
+    <li><strong>Телефон в Wi‑Fi:</strong> <code>https://&lt;IP-ПК&gt;:3443</code></li>
+    <li><strong>Из интернета:</strong> <code>https://….loca.lt</code> после <code>npm run dev:public</code> (preview, не dev — меньше 502)</li>
+    <li><strong>ПК без формы IP:</strong> <a class="btn secondary" id="proxy-link" href="/__hush_lt/">/__hush_lt/</a></li>
+    <li><strong>Без loca.lt (ssh):</strong> <code>set HUSH_TUNNEL=run</code> + <code>npm run dev:public</code></li>
+    <li><strong>Только HTTP (не для E2E):</strong> <code>set HUSH_TUNNEL=bore</code>.</li>
+  </ul>
+
+  <div class="box ok">
+    <p>Ваш публичный IP (для справки): <code id="my-ip">…</code></p>
+    <p id="tunnel-url"></p>
+  </div>
+
+  <script>
+    fetch('https://api.ipify.org?format=json').then(function (r) { return r.json(); }).then(function (d) {
+      document.getElementById('my-ip').textContent = d.ip || '—';
+    }).catch(function () {
+      document.getElementById('my-ip').textContent = 'не удалось определить';
+    });
+
+    var params = new URLSearchParams(location.search);
+    var url = params.get('url');
+    if (url) {
+      document.getElementById('tunnel-url').innerHTML =
+        'Туннель из консоли: <a href="' + url + '">' + url + '</a><br>' +
+        'На loca.lt введите IP <em>со страницы</em>, не ' + (document.getElementById('my-ip').textContent || 'ваш') + '.';
+    }
+  </script>
+</body>
+</html>

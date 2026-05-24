@@ -1,11 +1,15 @@
+import { assertSecureCrypto } from './cryptoEnvironment';
+
 export async function generateKeyPair() {
-    const keyPair = await window.crypto.subtle.generateKey(
+    assertSecureCrypto();
+    const subtle = globalThis.crypto.subtle;
+    const keyPair = await subtle.generateKey(
         { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
         true, ['encrypt', 'decrypt']
     );
     return {
-        publicKey: btoa(String.fromCharCode(...new Uint8Array(await window.crypto.subtle.exportKey('spki', keyPair.publicKey)))),
-        privateKey: btoa(String.fromCharCode(...new Uint8Array(await window.crypto.subtle.exportKey('pkcs8', keyPair.privateKey)))),
+        publicKey: btoa(String.fromCharCode(...new Uint8Array(await subtle.exportKey('spki', keyPair.publicKey)))),
+        privateKey: btoa(String.fromCharCode(...new Uint8Array(await subtle.exportKey('pkcs8', keyPair.privateKey)))),
     };
 }
 
@@ -84,7 +88,7 @@ export async function encryptMessage(text, recipientPublicKeyB64, existingAesKey
         });
     } catch (e) {
         console.error('Encryption failed', e);
-        return text;
+        throw new Error('Encryption failed — message not sent');
     }
 }
 
@@ -116,7 +120,7 @@ export async function decryptMessage(encryptedJson, myPrivateKeyB64, groupAesKey
                 encryptedAesKeyB64 = data.key;
             }
 
-            if (!encryptedAesKeyB64) throw new Error('No usable key found in message');
+            if (!encryptedAesKeyB64) return '[Locked Content]';
 
             const encryptedAesKey = new Uint8Array(atob(encryptedAesKeyB64).split('').map(c => c.charCodeAt(0)));
             const aesKeyRaw = await window.crypto.subtle.decrypt({ name: 'RSA-OAEP' }, rsaKey, encryptedAesKey);

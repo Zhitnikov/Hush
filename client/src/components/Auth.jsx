@@ -20,7 +20,7 @@ export default function Auth({ onLogin }) {
         try {
             const endpoint = isLogin ? '/login' : '/register';
             const res = await axios.post(`${API_URL}${endpoint}`, { username, password });
-            onLogin(res.data.user, res.data.token);
+            onLogin(res.data.user, res.data.token, res.data.refreshToken);
         } catch (err) {
             setError(err.response?.data?.msg || err.message || 'Authentication failed. Check if server is running.');
         } finally {
@@ -29,16 +29,15 @@ export default function Auth({ onLogin }) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40 flex flex-col items-center justify-center p-6">
-            <div className="w-full max-w-[420px] bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-[0_8px_40px_rgba(15,23,42,0.08)] border border-slate-200/80 relative overflow-hidden fade-in">
-                <div className="absolute -top-32 -right-32 w-72 h-72 bg-blue-500/[0.06] rounded-full blur-3xl pointer-events-none" />
+        <div className="min-h-screen bg-[var(--bg-app)] flex flex-col items-center justify-center p-6">
+            <div className="w-full max-w-[400px] bg-[var(--bg-sidebar)] p-8 rounded-xl border border-[var(--border)] shadow-[var(--shadow-soft)] fade-in">
 
-                <div className="text-center mb-8 relative">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-blue-500/25">
-                        <MessageSquare className="text-white" size={30} strokeWidth={2} />
+                <div className="text-center mb-8">
+                    <div className="w-14 h-14 bg-[var(--accent)] rounded-[14px] flex items-center justify-center mx-auto mb-4">
+                        <MessageSquare className="text-white" size={26} strokeWidth={2} />
                     </div>
-                    <h1 className="text-2xl sm:text-[1.65rem] font-semibold text-slate-900 tracking-tight">Secure Messenger</h1>
-                    <p className="text-slate-500 text-sm mt-2">End-to-end encrypted conversations</p>
+                    <h1 className="text-xl font-semibold text-[var(--text-primary)]">Hush</h1>
+                    <p className="text-[var(--text-muted)] text-sm mt-1">Зашифрованные личные сообщения</p>
                 </div>
 
                 <div className="flex bg-slate-100/90 p-1 rounded-xl mb-8 relative border border-slate-200/60">

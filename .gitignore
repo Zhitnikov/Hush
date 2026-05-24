@@ -25,6 +25,7 @@ Desktop.ini
 # IDE / editors
 .idea/
 .vscode/
+.cursor/mcp.json
 *.swp
 *.swo
 
@@ -38,6 +39,7 @@ server/uploads/*
 
 # Vite
 client/dist/
+client/.tunnel-url.json
 
 # Misc
 .cache/

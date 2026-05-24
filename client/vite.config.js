@@ -1,11 +1,20 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { createDevProxy, createDevServer, viteCacheDir } from './vite.shared.js';
+import { tunnelProxyPlugin } from './vite.plugins.tunnel.js';
 
-// https://vitejs.dev/config/
+
+const previewPort = Number(process.env.HUSH_TUNNEL_PORT || 3335);
+
 export default defineConfig({
-    plugins: [react()],
-    server: {
-        host: '0.0.0.0',
-        port: 3333
-    }
-})
+    cacheDir: viteCacheDir('http'),
+    plugins: [react(), tunnelProxyPlugin()],
+    server: createDevServer({
+        port: 3333,
+        proxy: createDevProxy(),
+    }),
+    preview: createDevServer({
+        port: previewPort,
+        proxy: createDevProxy(),
+    }),
+});
